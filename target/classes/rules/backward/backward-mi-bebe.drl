@@ -1,0 +1,439 @@
+package rules
+
+//import classes.
+import model.Bebe
+import model.Ambiente
+import model.DiagnosticoAburrimiento
+import model.DiagnosticoAfeccion
+import model.DiagnosticoCansancio
+import model.DiagnosticoDientes
+import model.DiagnosticoDientes
+import model.DiagnosticoGases
+import model.DiagnosticoLesiones
+import model.DiagnosticoHambre
+import model.DiagnosticoSuciedadPanial
+import model.DiagnosticoTempCorporal
+import model.Pañal
+import model.Recomendacion
+import model.RecomendacionPreliminar
+
+//import enums
+import enums.ResultadoPreliminar
+import enums.AccionRecomendada
+import enums.NivelBaba
+import enums.NivelAmbiente
+
+// Rules
+rule "R01 – Nivel de hambre alto"
+lock-on-active agenda-group "Diagnostico de Hambre"
+    when
+        $bebe: Bebe(
+        	alimentoIngerido > 0,
+        	alimentoIngerido <= 80,
+        	recomendacion.preliminar.hambre.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.hambre.setResultado(ResultadoPreliminar.BebeConHambre)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R02 – Nivel de hambre medio"
+lock-on-active agenda-group "Diagnostico de Hambre"
+    when
+        $bebe: Bebe(
+        	alimentoIngerido > 80,
+        	alimentoIngerido <= 160,
+        	recomendacion.preliminar.hambre.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.hambre.setResultado(ResultadoPreliminar.BebeConHambre)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R03 – Nivel de hambre bajo"
+lock-on-active agenda-group "Diagnostico de Hambre"
+    when
+        $bebe: Bebe(
+        	alimentoIngerido > 160,
+        	alimentoIngerido <= 240,
+        	recomendacion.preliminar.hambre.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.hambre.setResultado(ResultadoPreliminar.BebeSinHambre)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R04 – Bebe lastimado"
+lock-on-active agenda-group "Diagnostico de lesiones en el cuerpo"
+    when
+        $bebe: Bebe(
+        	zonaColorada == true,
+        	recomendacion.preliminar.lesiones.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.lesiones.setResultado(ResultadoPreliminar.BebeLastimado)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R05 – Bebe rasguniado"
+lock-on-active agenda-group "Diagnostico de lesiones en el cuerpo"
+    when
+        $bebe: Bebe(
+        	marcaRoja == true,
+        	recomendacion.preliminar.lesiones.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.lesiones.setResultado(ResultadoPreliminar.BebeLastimado)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R06.1 – Bebe aburrido"
+lock-on-active agenda-group "Diagnostico nivel de aburrimiento del bebe"
+    when
+        $bebe: Bebe(
+        	desvelado == true,
+        	nivelBaba.isa(NivelBaba.Bajo),
+        	recomendacion.preliminar.aburrimiento.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.aburrimiento.setResultado(ResultadoPreliminar.BebeAburrido)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R06.2 – Bebe aburrido"
+lock-on-active agenda-group "Diagnostico nivel de aburrimiento del bebe"
+    when
+        $bebe: Bebe(
+        	desvelado == true,
+        	nivelBaba.isa(NivelBaba.Medio),
+        	recomendacion.preliminar.aburrimiento.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.aburrimiento.setResultado(ResultadoPreliminar.BebeAburrido)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ----*/
+rule "R07.1 – Panial sucio"
+lock-on-active agenda-group "Diagnostico de suciedad en el panial"
+    when
+        $bebe: Bebe(
+        	pañal.isPresentaHeces() == true,
+        	recomendacion.preliminar.panial.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.panial.setResultado(ResultadoPreliminar.BebeSucio)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ----*/
+rule "R07.2 – Panial sucio"
+lock-on-active agenda-group "Diagnostico de suciedad en el panial"
+    when
+        $bebe: Bebe(
+        	pañal.isPresentaHumedad() == true,
+        	recomendacion.preliminar.panial.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.panial.setResultado(ResultadoPreliminar.BebeSucio)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R08 – Bebe con gases"
+lock-on-active agenda-group "Diagnostico de gases"
+    when
+        $bebe: Bebe(
+        	movimientoIntensoPiernas == true,
+        	recomendacion.preliminar.gases.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.gases.setResultado(ResultadoPreliminar.BebeConGases)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R09 – Creciendo dientes"
+lock-on-active agenda-group "Diagnostico de dientes creciendo"
+    when
+        $bebe: Bebe(
+        	desvelado == true,
+        	nivelBaba.isa(NivelBaba.Alto),
+        	recomendacion.dientes.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.dientes.setResultado(ResultadoPreliminar.SaliendoDientes)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R10 – Bebe con poco suenio"
+lock-on-active agenda-group "Diagnostico de suenio del bebe"
+    when
+        $bebe: Bebe(
+        	ultimaSiesta > 0,
+        	ultimaSiesta <= 90,
+        	recomendacion.preliminar.cansancio.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.cansancio.setResultado(ResultadoPreliminar.BebeSinSuenio)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R11 – Bebe con mucho suenio"
+lock-on-active agenda-group "Diagnostico de suenio del bebe"
+    when
+        $bebe: Bebe(
+        	ultimaSiesta > 90,
+        	ultimaSiesta <= 180,
+        	recomendacion.preliminar.cansancio.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.cansancio.setResultado(ResultadoPreliminar.BebeConSuenio)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R12 – Bebe con calor"
+lock-on-active agenda-group "Diagnostico de calor del bebe"
+    when
+        $bebe: Bebe(
+        	estaCaliente == true,
+        	recomendacion.preliminar.tempCorporal.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+        $ambiente: Ambiente(
+        	this.getNivel.isa(NivelAmbiente.Caliente)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.tempCorporal.setResultado(ResultadoPreliminar.BebeConCalor)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R13 – Bebe con frio"
+lock-on-active agenda-group "Diagnostico de frio del bebe"
+    when
+        $bebe: Bebe(
+        	estaCaliente == false,
+        	recomendacion.preliminar.tempCorporal.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+        $ambiente: Ambiente(
+        	this.getNivel.isa(NivelAmbiente.Frio)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.preliminar.tempCorporal.setResultado(ResultadoPreliminar.BebeConFrio)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R14.1 – Bebe con colicos"
+lock-on-active agenda-group "Diagnostico de colicos"
+    when
+        $bebe: Bebe(
+        	malaReaccionTacto == true,
+        	conErupciones == true,
+        	recomendacion.colicos.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.colicos.setResultado(ResultadoPreliminar.ConColicos)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R14.2 – Bebe con colicos"
+lock-on-active agenda-group "Diagnostico de colicos"
+    when
+        $bebe: Bebe(
+        	malaReaccionTacto == true,
+        	conInflamacion == true,
+        	recomendacion.colicos.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+    then
+        modify($bebe) {
+        	recomendacion.colicos.setResultado(ResultadoPreliminar.ConColicos)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R15 – Bebe con afeccion"
+lock-on-active agenda-group "Diagnostico de afecciones"
+    when
+        $bebe: Bebe(
+        	tempCorporal > 37.5,
+        	estaCaliente == true,
+        	recomendacion.afeccion.resultado.isa(ResultadoPreliminar.NoDeterminado) 
+        )
+        $ambiente: Ambiente(
+        	this.getNivel.isa(NivelAmbiente.Normal)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.afeccion.setResultado(ResultadoPreliminar.ConEnfermedad)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R16 – Recomendacion de alimentar al bebe"
+lock-on-active agenda-group "Recomendacion al llanto del bebe"
+    when
+        $bebe: Bebe(
+        	recomendacion.preliminar.hambre.resultado.isa(ResultadoPreliminar.BebeConHambre),
+        	recomendacion.accion.isa(AccionRecomendada.NoDeterminado)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.setAccion(AccionRecomendada.AlimentarAlBebe)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R17 – Recomendacion de consolar al bebe"
+lock-on-active agenda-group "Recomendacion al llanto del bebe"
+    when
+        $bebe: Bebe(
+        	recomendacion.preliminar.lesiones.resultado.isa(ResultadoPreliminar.BebeLastimado),
+        	recomendacion.accion.isa(AccionRecomendada.NoDeterminado)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.setAccion(AccionRecomendada.ConsolarAlBebe)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R18 – Recomendacion de consolar al bebe"
+lock-on-active agenda-group "Recomendacion al llanto del bebe"
+    when
+        $bebe: Bebe(
+        	recomendacion.preliminar.lesiones.resultado.isa(ResultadoPreliminar.BebeConRasgunio),
+        	recomendacion.accion.isa(AccionRecomendada.NoDeterminado)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.setAccion(AccionRecomendada.ConsolarAlBebe)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R19 – Recomendacion de dar atencion al bebe"
+lock-on-active agenda-group "Recomendacion al llanto del bebe"
+    when
+        $bebe: Bebe(
+        	recomendacion.preliminar.aburrimiento.resultado.isa(ResultadoPreliminar.BebeAburrido),
+        	recomendacion.accion.isa(AccionRecomendada.NoDeterminado)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.setAccion(AccionRecomendada.DarAtencionAlBebe)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R20 – Recomendacion de cambiar el panial del bebe"
+lock-on-active agenda-group "Recomendacion al llanto del bebe"
+    when
+        $bebe: Bebe(
+        	recomendacion.preliminar.panial.resultado.isa(ResultadoPreliminar.BebeSucio),
+        	recomendacion.accion.isa(AccionRecomendada.NoDeterminado)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.setAccion(AccionRecomendada.CambiarPañalDelBebe)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R21 – Recomendacion de ejercitar las piernas del bebe"
+lock-on-active agenda-group "Recomendacion al llanto del bebe"
+    when
+        $bebe: Bebe(
+        	recomendacion.preliminar.gases.resultado.isa(ResultadoPreliminar.BebeConGases),
+        	recomendacion.accion.isa(AccionRecomendada.NoDeterminado)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.setAccion(AccionRecomendada.EjercitarPiernasDelBebe)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R22 – Recomendacion de hacer dormir al bebe"
+lock-on-active agenda-group "Recomendacion al llanto del bebe"
+    when
+        $bebe: Bebe(
+        	recomendacion.preliminar.cansancio.resultado.isa(ResultadoPreliminar.BebeConSuenio),
+        	recomendacion.accion.isa(AccionRecomendada.NoDeterminado)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.setAccion(AccionRecomendada.HacerDormirAlBebe)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R23 – Recomendacion sacar el arbigo del bebe"
+lock-on-active agenda-group "Recomendacion al llanto del bebe"
+    when
+        $bebe: Bebe(
+        	recomendacion.preliminar.tempCorporal.resultado.isa(ResultadoPreliminar.BebeConCalor),
+        	recomendacion.accion.isa(AccionRecomendada.NoDeterminado)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.setAccion(AccionRecomendada.SacarAbrigoDelBebe)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R24 – Recomendacion poner un arbigo del bebe"
+lock-on-active agenda-group "Recomendacion al llanto del bebe"
+    when
+        $bebe: Bebe(
+        	recomendacion.preliminar.tempCorporal.resultado.isa(ResultadoPreliminar.BebeConFrio),
+        	recomendacion.accion.isa(AccionRecomendada.NoDeterminado)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.setAccion(AccionRecomendada.PonerAbrigoAlBebe)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R25 – Recomendacion de frotar y enfriar encias"
+lock-on-active agenda-group "Recomendacion al llanto del bebe"
+    when
+        $bebe: Bebe(
+        	recomendacion.dientes.resultado.isa(ResultadoPreliminar.SaliendoDientes),
+        	recomendacion.accion.isa(AccionRecomendada.NoDeterminado)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.setAccion(AccionRecomendada.FrotarYenfriarEncias)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R26 – Recomendacion de consultar un pediatra debido a colicos"
+lock-on-active agenda-group "Recomendacion al llanto del bebe"
+    when
+        $bebe: Bebe(
+        	recomendacion.colicos.resultado.isa(ResultadoPreliminar.ConColicos),
+        	recomendacion.accion.isa(AccionRecomendada.NoDeterminado)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.setAccion(AccionRecomendada.ConsultarPediatra)
+        }
+end
+/* ---- ---- ---- ---- ---- ---- ---- ---- ---- */
+rule "R27 – Recomendacion de consultar un pediatra debido a afeccion"
+lock-on-active agenda-group "Recomendacion al llanto del bebe"
+    when
+        $bebe: Bebe(
+        	recomendacion.afeccion.resultado.isa(ResultadoPreliminar.ConEnfermedad),
+        	recomendacion.accion.isa(AccionRecomendada.NoDeterminado)
+        )
+    then
+        modify($bebe) {
+        	recomendacion.setAccion(AccionRecomendada.ConsultarPediatra)
+        }
+end
+
+
+
+/* ---- ---- ---- ---- END ---- ---- ---- ---- */

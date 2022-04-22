@@ -12,8 +12,17 @@ import enums.AccionRecomendada;
 import enums.Causas;
 import enums.NivelAmbiente;
 import enums.NivelBaba;
+import enums.ResultadoPreliminar;
 import model.Ambiente;
 import model.Bebe;
+import model.DiagnosticoAburrimiento;
+import model.DiagnosticoCansancio;
+import model.DiagnosticoGases;
+import model.DiagnosticoHambre;
+import model.DiagnosticoLesiones;
+import model.DiagnosticoSuciedadPanial;
+import model.DiagnosticoTempCorporal;
+import model.Recomendacion;
 import utils.KnowledgeSessionHelper;
 
 import java.awt.Font;
@@ -341,9 +350,27 @@ public class BabyInterface extends JFrame {
 		String recomendacion = "Recomendacion: " + splitCamelCase(rec); 
 		result.setText(accion);
 		result_1.setText(recomendacion);
+		
+		limpiarRecomendaciones(bebe);
+		
 		System.out.println(bebe.toString());
 	}
 	
+	private void limpiarRecomendaciones(Bebe bebe) {
+		bebe.recomendacion.setAccion(AccionRecomendada.NoDeterminado);
+		bebe.recomendacion.colicos.setResultado(ResultadoPreliminar.NoDeterminado);
+		bebe.recomendacion.afeccion.setResultado(ResultadoPreliminar.NoDeterminado);
+		bebe.recomendacion.dientes.setResultado(ResultadoPreliminar.NoDeterminado);
+		bebe.recomendacion.preliminar.hambre.setResultado(ResultadoPreliminar.NoDeterminado);
+		bebe.recomendacion.preliminar.lesiones.setResultado(ResultadoPreliminar.NoDeterminado);
+		bebe.recomendacion.preliminar.aburrimiento.setResultado(ResultadoPreliminar.NoDeterminado);
+		bebe.recomendacion.preliminar.panial.setResultado(ResultadoPreliminar.NoDeterminado);
+		bebe.recomendacion.preliminar.gases.setResultado(ResultadoPreliminar.NoDeterminado);
+		bebe.recomendacion.preliminar.cansancio.setResultado(ResultadoPreliminar.NoDeterminado);
+		bebe.recomendacion.preliminar.tempCorporal.setResultado(ResultadoPreliminar.NoDeterminado);
+		bebe.recomendacion.preliminar.setResultado(AccionRecomendada.NoDeterminado);
+	}
+
 	private String splitCamelCase(String s) {
 	   return s.replaceAll(
 	      String.format("%s|%s|%s",
